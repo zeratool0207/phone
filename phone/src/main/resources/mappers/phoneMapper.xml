@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.mappers.phoneMapper">
+
+	<!-- <select id="list" resultType="map">
+		select
+				SEQ
+				,NAME
+				,PHONE
+				,RELATIONSHIP
+			from phone
+			where USEYN = 'Y'
+	</select> -->
+	
+	<insert id="insert">
+		insert into phone
+			values
+			(
+				(select nvl(max(seq)+1,0) from phone)
+				,#{NAME}
+				,#{PHONE}
+				,#{RELATIONSHIP}
+				,'Y'
+			)
+	</insert>
+	
+	<select id="detail" resultType="map">
+		select
+				SEQ
+				,NAME
+				,PHONE
+				,RELATIONSHIP
+			from phone
+			where USEYN = 'Y' and SEQ = #{SEQ}
+	</select>
+	
+	<update id="update">
+		update phone
+		set
+			NAME = #{NAME}
+			,PHONE = #{PHONE}
+			,RELATIONSHIP = #{RELATIONSHIP}
+		where SEQ = #{SEQ}
+	</update>
+	
+	<update id = "delete">
+		update phone
+		set
+			useyn = 'N'
+		where SEQ in
+		<foreach collection="list" open="(" close=")" separator="," item="a">
+			#{a}
+		</foreach>
+	</update>
+	
+	<!-- list + search
+	<select id="list" resultType="map">
+		select
+				SEQ
+				,NAME
+				,PHONE
+				,RELATIONSHIP
+			from phone
+			where USEYN = 'Y'
+			<choose>
+				<when test="searchType == 'name'">
+					and NAME like '%'||#{searchTxt}||'%'
+				</when>
+			</choose>
+	</select> -->
+	
+	<select id="totalRowCount" resultType="int">
+		select count(*)
+			from phone
+	</select>
+	
+	
+	<select id="list" resultType="map">
+		select
+				rnum
+				,SEQ
+				,NAME
+				,PHONE
+				,RELATIONSHIP
+			from(
+					select
+					row_number() over (order by SEQ desc) rnum
+					,SEQ
+					,NAME
+					,PHONE
+					,RELATIONSHIP
+				from phone
+				where USEYN = 'Y'
+				<choose>
+					<when test="searchType == 'name'">
+						and NAME like '%'||#{searchTxt}||'%'
+					</when>
+				</choose>
+			)
+where rnum between #{pageNo} * #{listSize} - #{listSize}  + 1  and #{pageNo} * #{listSize}
+order by seq desc			
+	</select>
+	
+	
+	
+
+</mapper>
